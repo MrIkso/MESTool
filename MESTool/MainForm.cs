@@ -76,7 +76,10 @@ namespace MESTool
                 if (ofd.ShowDialog() == DialogResult.OK)
                 {
                     _currentMesPath = ofd.FileName;
-                    _dumpFolderPath = Path.GetFileNameWithoutExtension(_currentMesPath);
+                    string sourceDirectory = Path.GetDirectoryName(_currentMesPath);
+                    string unpackedFolderName = Path.GetFileNameWithoutExtension(_currentMesPath);
+
+                    _dumpFolderPath = Path.Combine(sourceDirectory, unpackedFolderName);
 
                     try
                     {
@@ -244,7 +247,7 @@ namespace MESTool
                 SwitchToView(textBoxContent);
                 try
                 {
-                    textBoxContent.Text = File.ReadAllText(_currentlySelectedFilePath);
+                    textBoxContent.Text = File.ReadAllText(_currentlySelectedFilePath, Encoding.UTF8);
                 }
                 catch (Exception ex)
                 {
