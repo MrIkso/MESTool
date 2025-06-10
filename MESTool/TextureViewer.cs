@@ -1,9 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Drawing;
-using System.Drawing.Drawing2D;
-using System.Linq;
-using System.Windows.Forms;
+﻿using System.Drawing.Drawing2D;
 using static MESTool.MesToolProcessor;
 
 namespace MESTool
@@ -17,6 +12,7 @@ namespace MESTool
 
         private SplitContainer _splitContainer;
         private ListView _uvListView;
+        private Button _replaceCharButton;
         private ToolTip _toolTip;
         private ushort? _currentToolTipId = null;
         private Brush _checkerboardBrush;
@@ -24,6 +20,9 @@ namespace MESTool
 
         private bool _isLayoutInitialized = false;
         private Dictionary<ushort, string> _charTable;
+        private bool _isTextureModified = false;
+
+        public Action<object?, EventArgs> TextureModifiedChanged { get; internal set; }
 
         public TextureViewer()
         {
@@ -64,6 +63,29 @@ namespace MESTool
             _splitContainer.Panel1.MouseLeave += Panel1_MouseLeave;
             _splitContainer.Panel1.MouseWheel += Panel1_MouseWheel;
 
+            var tableLayoutPanel = new TableLayoutPanel
+            {
+                AutoSize = true,
+                Dock = DockStyle.Fill,
+                ColumnCount = 1,
+                RowCount = 2
+            };
+
+            tableLayoutPanel.RowStyles.Add(new RowStyle(SizeType.AutoSize));
+
+            tableLayoutPanel.RowStyles.Add(new RowStyle(SizeType.Percent, 100F));
+
+            _replaceCharButton = new Button
+            {
+                Text = "Replace Selected Char...",
+                Dock = DockStyle.Top,
+                Enabled = false,
+                AutoSize = true,
+
+                Margin = new Padding(3, 3, 3, 3)
+            };
+            _replaceCharButton.Click += ReplaceCharButton_Click;
+
             _uvListView = new ListView
             {
                 Dock = DockStyle.Fill,
@@ -73,11 +95,14 @@ namespace MESTool
                 MultiSelect = false
             };
             _uvListView.Columns.Add("ID", 50);
-            _uvListView.Columns.Add("Hex", 50);
+            _uvListView.Columns.Add("Hex", 65);
             _uvListView.Columns.Add("Char", 50);
             _uvListView.SelectedIndexChanged += UvListView_SelectedIndexChanged;
 
-            _splitContainer.Panel2.Controls.Add(_uvListView);
+            tableLayoutPanel.Controls.Add(_replaceCharButton, 0, 0); // Кнопка в першому рядку (індекс 0)
+            tableLayoutPanel.Controls.Add(_uvListView, 0, 1);       // Список у другому рядку (індекс 1)
+
+            _splitContainer.Panel2.Controls.Add(tableLayoutPanel);
 
             this.Controls.Add(_splitContainer);
             this.ResumeLayout(false);
@@ -135,6 +160,19 @@ namespace MESTool
             }
         }
 
+        public void ShowUV(bool show)
+        {
+            this.showUv = show;
+            _splitContainer.Panel2Collapsed = !show;
+            if (!show)
+            {
+                _toolTip.Hide(_splitContainer.Panel1);
+                _currentToolTipId = null;
+                _selectedUvEntry = null;
+            }
+            _splitContainer.Panel1.Invalidate();
+        }
+
         public void Clear()
         {
             if (_texture != null)
@@ -143,31 +181,10 @@ namespace MESTool
                 _texture = null;
             }
             _uvEntries = null;
-            
+
             _selectedUvEntry = null;
             _splitContainer.Panel1.Invalidate();
             this.Invalidate();
-        }
-
-        private void Panel1_MouseWheel(object sender, MouseEventArgs e)
-        {
-            if (ModifierKeys == Keys.Control)
-            {
-                if (e.Delta > 0)
-                {
-                    ZoomIn();
-                }
-                else
-                {
-                    ZoomOut();
-                }
-            }
-        }
-
-        private void Panel1_MouseLeave(object sender, EventArgs e)
-        {
-            _currentToolTipId = null;
-            _toolTip.Hide(_splitContainer.Panel1);
         }
 
         public void ZoomIn()
@@ -190,11 +207,11 @@ namespace MESTool
 
             var listItems = _uvEntries.OrderBy(uv => uv.Id).Select(uv =>
             {
-                string character = "";
-                if (_charTable != null && _charTable.TryGetValue(uv.Id, out string foundChar))
+                string? character = "";
+                if (_charTable != null && _charTable.TryGetValue(uv.Id, out string? foundChar))
                 {
 
-                    character = foundChar.Replace("\n", "\\n").Replace("\r", "\\r").Replace("\t", "\\t");
+                    character = foundChar!.Replace("\n", "\\n").Replace("\r", "\\r").Replace("\t", "\\t");
                 }
 
                 var item = new ListViewItem(uv.Id.ToString());
@@ -207,21 +224,9 @@ namespace MESTool
             _uvListView.Items.AddRange(listItems);
         }
 
-        public void ShowUV(bool show)
-        {
-            this.showUv = show;
-            _splitContainer.Panel2Collapsed = !show;
-            if (!show)
-            {
-                _toolTip.Hide(_splitContainer.Panel1);
-                _currentToolTipId = null;
-                _selectedUvEntry = null;
-            }
-            _splitContainer.Panel1.Invalidate();
-        }
-
         private void UvListView_SelectedIndexChanged(object sender, EventArgs e)
         {
+            TootgleReplaceButtonState();
             if (_uvListView.SelectedItems.Count > 0)
             {
                 _selectedUvEntry = _uvListView.SelectedItems[0].Tag as TextureMapUV;
@@ -231,6 +236,27 @@ namespace MESTool
                 _selectedUvEntry = null;
             }
             _splitContainer.Panel1.Invalidate();
+        }
+
+        private void Panel1_MouseWheel(object sender, MouseEventArgs e)
+        {
+            if (ModifierKeys == Keys.Control)
+            {
+                if (e.Delta > 0)
+                {
+                    ZoomIn();
+                }
+                else
+                {
+                    ZoomOut();
+                }
+            }
+        }
+
+        private void Panel1_MouseLeave(object sender, EventArgs e)
+        {
+            _currentToolTipId = null;
+            _toolTip.Hide(_splitContainer.Panel1);
         }
 
         private void Panel1_MouseMove(object sender, MouseEventArgs e)
@@ -272,7 +298,187 @@ namespace MESTool
             if (clickedUv != null)
             {
                 SelectUvInListView(clickedUv.Id);
+
+                if (e.Button == MouseButtons.Right)
+                {
+                    ContextMenuStrip contextMenu = new ContextMenuStrip();
+                    ToolStripMenuItem replaceItem = new ToolStripMenuItem("Replace Character", null, (s, args) => ReplaceTextureChar());
+
+                    contextMenu.Items.Add(replaceItem);
+                    contextMenu.Show(_splitContainer.Panel1, e.Location);
+                }
             }
+        }
+
+        private void Panel1_Paint(object sender, PaintEventArgs e)
+        {
+            if (_texture == null)
+            {
+                e.Graphics.Clear(_splitContainer.Panel1.BackColor);
+                return;
+            }
+
+            if (_checkerboardBrush is TextureBrush textureBrush)
+            {
+
+                Matrix originalBrushTransform = textureBrush.Transform;
+
+                textureBrush.TranslateTransform(
+                    _splitContainer.Panel1.AutoScrollPosition.X,
+                    _splitContainer.Panel1.AutoScrollPosition.Y
+                );
+
+                e.Graphics.FillRectangle(textureBrush, e.ClipRectangle);
+
+                textureBrush.Transform = originalBrushTransform;
+            }
+            else
+            {
+
+                e.Graphics.Clear(_splitContainer.Panel1.BackColor);
+            }
+
+            _splitContainer.Panel1.AutoScrollMinSize = new Size(
+                (int)(_texture.Width * _zoom),
+                (int)(_texture.Height * _zoom)
+            );
+            e.Graphics.TranslateTransform(_splitContainer.Panel1.AutoScrollPosition.X, _splitContainer.Panel1.AutoScrollPosition.Y);
+            e.Graphics.ScaleTransform(_zoom, _zoom);
+            e.Graphics.InterpolationMode = InterpolationMode.NearestNeighbor;
+
+            e.Graphics.DrawImage(_texture, 0, 0);
+
+            if (showUv && _uvEntries != null)
+            {
+
+                using (Pen pen = new Pen(Color.Red, 1.0f / _zoom))
+                {
+                    foreach (var uv in _uvEntries)
+                    {
+                        if (uv != _selectedUvEntry)
+                        {
+                            DrawUvRect(e.Graphics, uv, pen);
+                        }
+                    }
+                }
+
+                if (_selectedUvEntry != null)
+                {
+                    Color highlightFillColor = Color.FromArgb(100, SystemColors.Highlight);
+                    using (Brush selectedBrush = new SolidBrush(highlightFillColor))
+                    {
+                        FillUvRect(e.Graphics, _selectedUvEntry, selectedBrush);
+                    }
+                    using (Pen selectedPen = new Pen(SystemColors.Highlight, 1.5f / _zoom))
+                    {
+                        DrawUvRect(e.Graphics, _selectedUvEntry, selectedPen);
+                    }
+                }
+            }
+        }
+
+        private void ReplaceCharButton_Click(object sender, EventArgs e)
+        {
+            ReplaceTextureChar();
+        }
+
+        private bool ReplaceTextureChar()
+        {
+            if (_selectedUvEntry == null || _texture == null)
+            {
+                MessageBox.Show("Please select a texture from the list first.", "Information", MessageBoxButtons.OK, MessageBoxIcon.Information);
+                return false;
+            }
+
+            using (OpenFileDialog ofd = new OpenFileDialog())
+            {
+                ofd.Filter = "Image Files (*.png;*.bmp;*.jpg)|*.png;*.bmp;*.jpg|All Files (*.*)|*.*";
+                ofd.Title = "Select New Texture Image";
+
+                if (ofd.ShowDialog() == DialogResult.OK)
+                {
+                    try
+                    {
+                        using (Image newCharImage = Image.FromFile(ofd.FileName))
+                        {
+                           
+                            string inputChar = ShowCharInputDialog();
+                           // if (inputChar == null)
+                               // return false;
+
+                            ReplaceCharacterOnTexture(newCharImage);
+
+                            if (_charTable != null)
+                            {
+                                _charTable[_selectedUvEntry.Id] = inputChar;
+                                PopulateUvListView();
+                                SelectUvInListView(_selectedUvEntry.Id);
+                            }
+                        }
+                    }
+                    catch (Exception ex)
+                    {
+                        MessageBox.Show($"Failed to replace texture: {ex.Message}", "Error", MessageBoxButtons.OK, MessageBoxIcon.Error);
+                        return false;
+                    }
+                }
+            }
+
+            return true;
+        }
+        
+        private string ShowCharInputDialog()
+        {
+            string oldChar = string.Empty;
+            if (_charTable != null && _charTable.TryGetValue(_selectedUvEntry.Id, out string? oldCharU))
+                oldChar = oldCharU;
+
+            using (EnterSymbolDialog enterSymbolDialog = new EnterSymbolDialog(oldChar))
+            {
+                if (enterSymbolDialog.ShowDialog() == DialogResult.OK)
+                {
+                    return enterSymbolDialog.Symbol;
+                }
+            }
+            return oldChar;
+
+        }
+
+        private void ReplaceCharacterOnTexture(Image newCharImage)
+        {
+            float rectX = Math.Min(_selectedUvEntry.StartX, _selectedUvEntry.EndX) * _texture.Width;
+            float rectY = Math.Min(_selectedUvEntry.StartY, _selectedUvEntry.EndY) * _texture.Height;
+            float rectWidth = Math.Abs(_selectedUvEntry.EndX - _selectedUvEntry.StartX) * _texture.Width;
+            float rectHeight = Math.Abs(_selectedUvEntry.EndY - _selectedUvEntry.StartY) * _texture.Height;
+
+            RectangleF targetRect = new RectangleF(rectX, rectY, rectWidth, rectHeight);
+
+            if (targetRect.Width <= 0 || targetRect.Height <= 0)
+            {
+                MessageBox.Show("The selected UV area has zero width or height.", "Warning", MessageBoxButtons.OK, MessageBoxIcon.Warning);
+                return;
+            }
+
+            using (Graphics g = Graphics.FromImage(_texture))
+            {
+                g.InterpolationMode = InterpolationMode.HighQualityBicubic;
+                g.SmoothingMode = SmoothingMode.AntiAlias;
+                g.PixelOffsetMode = PixelOffsetMode.HighQuality;
+                g.CompositingQuality = CompositingQuality.HighQuality;
+                g.CompositingMode = CompositingMode.SourceCopy;
+
+                using (var transparentBrush = new SolidBrush(Color.Transparent))
+                {
+                    g.FillRectangle(transparentBrush, targetRect);
+                }
+
+                g.CompositingMode = CompositingMode.SourceOver;
+                g.DrawImage(newCharImage, targetRect);
+            }
+
+            _splitContainer.Panel1.Invalidate();
+            _isTextureModified = true;
+            TextureModifiedChanged?.Invoke(this, EventArgs.Empty);
         }
 
         private TextureMapUV FindUvAtMousePosition(Point mouseLocation)
@@ -305,10 +511,13 @@ namespace MESTool
             return null;
         }
 
+        public bool IsTextureModified()
+        {
+            return _isTextureModified;
+        }
 
         private void SelectUvInListView(ushort uvId)
         {
-
             foreach (ListViewItem item in _uvListView.Items)
             {
                 if (item.Tag is TextureMapUV uv && uv.Id == uvId)
@@ -326,72 +535,18 @@ namespace MESTool
                     break;
                 }
             }
+            TootgleReplaceButtonState();
         }
 
-        private void Panel1_Paint(object sender, PaintEventArgs e)
+        private void TootgleReplaceButtonState()
         {
-            if (_texture == null)
+            if (_uvListView.SelectedItems.Count > 0)
             {
-                e.Graphics.Clear(_splitContainer.Panel1.BackColor);
-                return;
-            }
-           
-            if (_checkerboardBrush is TextureBrush textureBrush)
-            {
-               
-                Matrix originalBrushTransform = textureBrush.Transform;
-                
-                textureBrush.TranslateTransform(
-                    _splitContainer.Panel1.AutoScrollPosition.X,
-                    _splitContainer.Panel1.AutoScrollPosition.Y
-                );
-
-                e.Graphics.FillRectangle(textureBrush, e.ClipRectangle);
-    
-                textureBrush.Transform = originalBrushTransform;
+                _replaceCharButton.Enabled = true;
             }
             else
             {
-                
-                e.Graphics.Clear(_splitContainer.Panel1.BackColor);
-            }
-
-            _splitContainer.Panel1.AutoScrollMinSize = new Size(
-                (int)(_texture.Width * _zoom),
-                (int)(_texture.Height * _zoom)
-            );
-            e.Graphics.TranslateTransform(_splitContainer.Panel1.AutoScrollPosition.X, _splitContainer.Panel1.AutoScrollPosition.Y);
-            e.Graphics.ScaleTransform(_zoom, _zoom);
-            e.Graphics.InterpolationMode = InterpolationMode.NearestNeighbor;
-
-            e.Graphics.DrawImage(_texture, 0, 0);
-
-            if (showUv && _uvEntries != null)
-            {
-               
-                using (Pen pen = new Pen(Color.Red, 1.0f / _zoom))
-                {
-                    foreach (var uv in _uvEntries)
-                    {
-                        if (uv != _selectedUvEntry)
-                        {
-                            DrawUvRect(e.Graphics, uv, pen);
-                        }
-                    }
-                }
-
-                if (_selectedUvEntry != null)
-                {
-                    Color highlightFillColor = Color.FromArgb(100, SystemColors.Highlight);
-                    using (Brush selectedBrush = new SolidBrush(highlightFillColor))
-                    {
-                        FillUvRect(e.Graphics, _selectedUvEntry, selectedBrush);
-                    }
-                    using (Pen selectedPen = new Pen(SystemColors.Highlight, 1.5f / _zoom))
-                    {
-                        DrawUvRect(e.Graphics, _selectedUvEntry, selectedPen);
-                    }
-                }
+                _replaceCharButton.Enabled = false;
             }
         }
 
@@ -413,12 +568,11 @@ namespace MESTool
             }
         }
 
-
         private void DrawUvRect(Graphics g, TextureMapUV uv, Pen pen)
         {
             float x = uv.StartX * _texture.Width;
             float y = uv.StartY * _texture.Height;
-           
+
             float width = (uv.EndX - uv.StartX) * _texture.Width;
             float height = (uv.EndY - uv.StartY) * _texture.Height;
 
@@ -433,6 +587,20 @@ namespace MESTool
             }
         }
 
+        public Bitmap? GetModifiedTexture()
+        {
+            if (_texture is Bitmap bmp)
+            {
+                return bmp;
+            }
+
+            return _texture != null ? new Bitmap(_texture) : null;
+        }
+
+        public Dictionary<ushort, string> GetCharTable()
+        {
+            return _charTable ?? new Dictionary<ushort, string>();
+        }
 
         protected override void Dispose(bool disposing)
         {

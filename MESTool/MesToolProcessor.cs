@@ -184,7 +184,7 @@ namespace MESTool
             }
         }
 
-        public TextureMapInfo LoadTextureMapInfo(string folderPath)
+        public TextureMapInfo? LoadTextureMapInfo(string folderPath)
         {
             string xmlPath = Path.Combine(folderPath, "TextureMap.xml");
             if (!File.Exists(xmlPath))

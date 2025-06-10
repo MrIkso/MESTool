@@ -28,364 +28,371 @@
         /// </summary>
         private void InitializeComponent()
         {
-            this.menuStrip1 = new System.Windows.Forms.MenuStrip();
-            this.fileToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
-            this.openToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
-            this.openUnpackedFolderToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
-            this.saveToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
-            this.exitToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
-            this.platformMenuItem = new System.Windows.Forms.ToolStripMenuItem();
-            this.pCToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
-            this.pS3ToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
-            this.x360ToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
-            this.wiiUToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
-            this.viewStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
-            this.showUVToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
-            this.aboutToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
-            this.splitContainer1 = new System.Windows.Forms.SplitContainer();
-            this.listBoxEntries = new System.Windows.Forms.ListBox();
-            this.tabControl1 = new System.Windows.Forms.TabControl();
-            this.contentPage = new System.Windows.Forms.TabPage();
-            this.charPage = new System.Windows.Forms.TabPage();
-            this.tableLayoutPanel1 = new System.Windows.Forms.TableLayoutPanel();
-            this.saveCharsetDataBtn = new System.Windows.Forms.Button();
-            this.languageComboBox = new System.Windows.Forms.ComboBox();
-            this.label1 = new System.Windows.Forms.Label();
-            this.charDataGridView = new System.Windows.Forms.DataGridView();
-            this.tableLayoutPanel2 = new System.Windows.Forms.TableLayoutPanel();
-            this.label2 = new System.Windows.Forms.Label();
-            this.charTablesComboBox = new System.Windows.Forms.ComboBox();
-            this.menuStrip1.SuspendLayout();
-            ((System.ComponentModel.ISupportInitialize)(this.splitContainer1)).BeginInit();
-            this.splitContainer1.Panel1.SuspendLayout();
-            this.splitContainer1.SuspendLayout();
-            this.tabControl1.SuspendLayout();
-            this.contentPage.SuspendLayout();
-            this.charPage.SuspendLayout();
-            this.tableLayoutPanel1.SuspendLayout();
-            ((System.ComponentModel.ISupportInitialize)(this.charDataGridView)).BeginInit();
-            this.tableLayoutPanel2.SuspendLayout();
-            this.SuspendLayout();
+            menuStrip1 = new MenuStrip();
+            fileToolStripMenuItem = new ToolStripMenuItem();
+            openToolStripMenuItem = new ToolStripMenuItem();
+            openUnpackedFolderToolStripMenuItem = new ToolStripMenuItem();
+            saveToolStripMenuItem = new ToolStripMenuItem();
+            saveTextureAsDDSToolStripMenuItem = new ToolStripMenuItem();
+            exportModifiedTextureAndCharTableToolStripMenuItem = new ToolStripMenuItem();
+            exitToolStripMenuItem = new ToolStripMenuItem();
+            platformMenuItem = new ToolStripMenuItem();
+            pCToolStripMenuItem = new ToolStripMenuItem();
+            pS3ToolStripMenuItem = new ToolStripMenuItem();
+            x360ToolStripMenuItem = new ToolStripMenuItem();
+            wiiUToolStripMenuItem = new ToolStripMenuItem();
+            viewStripMenuItem = new ToolStripMenuItem();
+            showUVToolStripMenuItem = new ToolStripMenuItem();
+            aboutToolStripMenuItem = new ToolStripMenuItem();
+            splitContainer1 = new SplitContainer();
+            listBoxEntries = new ListBox();
+            tabControl1 = new TabControl();
+            contentPage = new TabPage();
+            charPage = new TabPage();
+            tableLayoutPanel1 = new TableLayoutPanel();
+            saveCharsetDataBtn = new Button();
+            languageComboBox = new ComboBox();
+            label1 = new Label();
+            charDataGridView = new DataGridView();
+            tableLayoutPanel2 = new TableLayoutPanel();
+            label2 = new Label();
+            charTablesComboBox = new ComboBox();
+            menuStrip1.SuspendLayout();
+            ((System.ComponentModel.ISupportInitialize)splitContainer1).BeginInit();
+            splitContainer1.Panel1.SuspendLayout();
+            splitContainer1.SuspendLayout();
+            tabControl1.SuspendLayout();
+            contentPage.SuspendLayout();
+            charPage.SuspendLayout();
+            tableLayoutPanel1.SuspendLayout();
+            ((System.ComponentModel.ISupportInitialize)charDataGridView).BeginInit();
+            tableLayoutPanel2.SuspendLayout();
+            SuspendLayout();
             // 
             // menuStrip1
             // 
-            this.menuStrip1.ImageScalingSize = new System.Drawing.Size(20, 20);
-            this.menuStrip1.Items.AddRange(new System.Windows.Forms.ToolStripItem[] {
-            this.fileToolStripMenuItem,
-            this.platformMenuItem,
-            this.viewStripMenuItem,
-            this.aboutToolStripMenuItem});
-            this.menuStrip1.Location = new System.Drawing.Point(0, 0);
-            this.menuStrip1.Name = "menuStrip1";
-            this.menuStrip1.Padding = new System.Windows.Forms.Padding(5, 2, 0, 2);
-            this.menuStrip1.Size = new System.Drawing.Size(882, 30);
-            this.menuStrip1.TabIndex = 0;
-            this.menuStrip1.Text = "menuStrip1";
+            menuStrip1.ImageScalingSize = new Size(20, 20);
+            menuStrip1.Items.AddRange(new ToolStripItem[] { fileToolStripMenuItem, platformMenuItem, viewStripMenuItem, aboutToolStripMenuItem });
+            menuStrip1.Location = new Point(0, 0);
+            menuStrip1.Name = "menuStrip1";
+            menuStrip1.Padding = new Padding(5, 2, 0, 2);
+            menuStrip1.Size = new Size(882, 28);
+            menuStrip1.TabIndex = 0;
+            menuStrip1.Text = "menuStrip1";
             // 
             // fileToolStripMenuItem
             // 
-            this.fileToolStripMenuItem.DropDownItems.AddRange(new System.Windows.Forms.ToolStripItem[] {
-            this.openToolStripMenuItem,
-            this.openUnpackedFolderToolStripMenuItem,
-            this.saveToolStripMenuItem,
-            this.exitToolStripMenuItem});
-            this.fileToolStripMenuItem.Name = "fileToolStripMenuItem";
-            this.fileToolStripMenuItem.Size = new System.Drawing.Size(46, 26);
-            this.fileToolStripMenuItem.Text = "File";
+            fileToolStripMenuItem.DropDownItems.AddRange(new ToolStripItem[] { openToolStripMenuItem, openUnpackedFolderToolStripMenuItem, saveToolStripMenuItem, saveTextureAsDDSToolStripMenuItem, exportModifiedTextureAndCharTableToolStripMenuItem, exitToolStripMenuItem });
+            fileToolStripMenuItem.Name = "fileToolStripMenuItem";
+            fileToolStripMenuItem.Size = new Size(46, 24);
+            fileToolStripMenuItem.Text = "File";
             // 
             // openToolStripMenuItem
             // 
-            this.openToolStripMenuItem.Name = "openToolStripMenuItem";
-            this.openToolStripMenuItem.ShortcutKeys = ((System.Windows.Forms.Keys)((System.Windows.Forms.Keys.Control | System.Windows.Forms.Keys.O)));
-            this.openToolStripMenuItem.Size = new System.Drawing.Size(302, 26);
-            this.openToolStripMenuItem.Text = "Open";
-            this.openToolStripMenuItem.Click += new System.EventHandler(this.MenuFileOpen_Click);
+            openToolStripMenuItem.Name = "openToolStripMenuItem";
+            openToolStripMenuItem.ShortcutKeys = Keys.Control | Keys.O;
+            openToolStripMenuItem.Size = new Size(354, 26);
+            openToolStripMenuItem.Text = "Open";
+            openToolStripMenuItem.Click += MenuFileOpen_Click;
             // 
             // openUnpackedFolderToolStripMenuItem
             // 
-            this.openUnpackedFolderToolStripMenuItem.Name = "openUnpackedFolderToolStripMenuItem";
-            this.openUnpackedFolderToolStripMenuItem.ShortcutKeys = ((System.Windows.Forms.Keys)((System.Windows.Forms.Keys.Control | System.Windows.Forms.Keys.G)));
-            this.openUnpackedFolderToolStripMenuItem.Size = new System.Drawing.Size(302, 26);
-            this.openUnpackedFolderToolStripMenuItem.Text = "Open unpacked folder";
-            this.openUnpackedFolderToolStripMenuItem.Click += new System.EventHandler(this.MenuFileRebuildFromFolder_Click);
+            openUnpackedFolderToolStripMenuItem.Name = "openUnpackedFolderToolStripMenuItem";
+            openUnpackedFolderToolStripMenuItem.ShortcutKeys = Keys.Control | Keys.G;
+            openUnpackedFolderToolStripMenuItem.Size = new Size(354, 26);
+            openUnpackedFolderToolStripMenuItem.Text = "Open unpacked folder";
+            openUnpackedFolderToolStripMenuItem.Click += MenuFileRebuildFromFolder_Click;
             // 
             // saveToolStripMenuItem
             // 
-            this.saveToolStripMenuItem.Name = "saveToolStripMenuItem";
-            this.saveToolStripMenuItem.ShortcutKeys = ((System.Windows.Forms.Keys)((System.Windows.Forms.Keys.Control | System.Windows.Forms.Keys.S)));
-            this.saveToolStripMenuItem.Size = new System.Drawing.Size(302, 26);
-            this.saveToolStripMenuItem.Text = "Save";
-            this.saveToolStripMenuItem.Click += new System.EventHandler(this.MenuFileRebuild_Click);
+            saveToolStripMenuItem.Name = "saveToolStripMenuItem";
+            saveToolStripMenuItem.ShortcutKeys = Keys.Control | Keys.S;
+            saveToolStripMenuItem.Size = new Size(354, 26);
+            saveToolStripMenuItem.Text = "Save";
+            saveToolStripMenuItem.Click += MenuFileRebuild_Click;
+            // 
+            // saveTextureAsDDSToolStripMenuItem
+            // 
+            saveTextureAsDDSToolStripMenuItem.Name = "saveTextureAsDDSToolStripMenuItem";
+            saveTextureAsDDSToolStripMenuItem.Size = new Size(354, 26);
+            saveTextureAsDDSToolStripMenuItem.Text = "Save Texture as DDS";
+            saveTextureAsDDSToolStripMenuItem.Click += saveTextureAsDDSToolStripMenuItem_Click;
+            // 
+            // exportModifiedTextureAndCharTableToolStripMenuItem
+            // 
+            exportModifiedTextureAndCharTableToolStripMenuItem.Enabled = false;
+            exportModifiedTextureAndCharTableToolStripMenuItem.Name = "exportModifiedTextureAndCharTableToolStripMenuItem";
+            exportModifiedTextureAndCharTableToolStripMenuItem.Size = new Size(354, 26);
+            exportModifiedTextureAndCharTableToolStripMenuItem.Text = "Export Modified Texture and Char Table";
+            exportModifiedTextureAndCharTableToolStripMenuItem.Click += exportModifiedTextureAndCharTableToolStripMenuItem_Click;
             // 
             // exitToolStripMenuItem
             // 
-            this.exitToolStripMenuItem.Name = "exitToolStripMenuItem";
-            this.exitToolStripMenuItem.ShortcutKeys = ((System.Windows.Forms.Keys)((System.Windows.Forms.Keys.Alt | System.Windows.Forms.Keys.F4)));
-            this.exitToolStripMenuItem.Size = new System.Drawing.Size(302, 26);
-            this.exitToolStripMenuItem.Text = "Exit";
-            this.exitToolStripMenuItem.Click += new System.EventHandler(this.exitToolStripMenuItem_Click);
+            exitToolStripMenuItem.Name = "exitToolStripMenuItem";
+            exitToolStripMenuItem.ShortcutKeys = Keys.Alt | Keys.F4;
+            exitToolStripMenuItem.Size = new Size(354, 26);
+            exitToolStripMenuItem.Text = "Exit";
+            exitToolStripMenuItem.Click += exitToolStripMenuItem_Click;
             // 
             // platformMenuItem
             // 
-            this.platformMenuItem.DropDownItems.AddRange(new System.Windows.Forms.ToolStripItem[] {
-            this.pCToolStripMenuItem,
-            this.pS3ToolStripMenuItem,
-            this.x360ToolStripMenuItem,
-            this.wiiUToolStripMenuItem});
-            this.platformMenuItem.Name = "platformMenuItem";
-            this.platformMenuItem.Size = new System.Drawing.Size(80, 26);
-            this.platformMenuItem.Text = "Platform";
+            platformMenuItem.DropDownItems.AddRange(new ToolStripItem[] { pCToolStripMenuItem, pS3ToolStripMenuItem, x360ToolStripMenuItem, wiiUToolStripMenuItem });
+            platformMenuItem.Name = "platformMenuItem";
+            platformMenuItem.Size = new Size(80, 24);
+            platformMenuItem.Text = "Platform";
             // 
             // pCToolStripMenuItem
             // 
-            this.pCToolStripMenuItem.Checked = true;
-            this.pCToolStripMenuItem.CheckState = System.Windows.Forms.CheckState.Checked;
-            this.pCToolStripMenuItem.Name = "pCToolStripMenuItem";
-            this.pCToolStripMenuItem.Size = new System.Drawing.Size(125, 26);
-            this.pCToolStripMenuItem.Text = "PC";
-            this.pCToolStripMenuItem.Click += new System.EventHandler(this.PlatformMenuItem_Click);
+            pCToolStripMenuItem.Checked = true;
+            pCToolStripMenuItem.CheckState = CheckState.Checked;
+            pCToolStripMenuItem.Name = "pCToolStripMenuItem";
+            pCToolStripMenuItem.Size = new Size(125, 26);
+            pCToolStripMenuItem.Text = "PC";
+            pCToolStripMenuItem.Click += PlatformMenuItem_Click;
             // 
             // pS3ToolStripMenuItem
             // 
-            this.pS3ToolStripMenuItem.Name = "pS3ToolStripMenuItem";
-            this.pS3ToolStripMenuItem.Size = new System.Drawing.Size(125, 26);
-            this.pS3ToolStripMenuItem.Text = "PS3";
-            this.pS3ToolStripMenuItem.Click += new System.EventHandler(this.PlatformMenuItem_Click);
+            pS3ToolStripMenuItem.Name = "pS3ToolStripMenuItem";
+            pS3ToolStripMenuItem.Size = new Size(125, 26);
+            pS3ToolStripMenuItem.Text = "PS3";
+            pS3ToolStripMenuItem.Click += PlatformMenuItem_Click;
             // 
             // x360ToolStripMenuItem
             // 
-            this.x360ToolStripMenuItem.Name = "x360ToolStripMenuItem";
-            this.x360ToolStripMenuItem.Size = new System.Drawing.Size(125, 26);
-            this.x360ToolStripMenuItem.Text = "X360";
-            this.x360ToolStripMenuItem.Click += new System.EventHandler(this.PlatformMenuItem_Click);
+            x360ToolStripMenuItem.Name = "x360ToolStripMenuItem";
+            x360ToolStripMenuItem.Size = new Size(125, 26);
+            x360ToolStripMenuItem.Text = "X360";
+            x360ToolStripMenuItem.Click += PlatformMenuItem_Click;
             // 
             // wiiUToolStripMenuItem
             // 
-            this.wiiUToolStripMenuItem.Name = "wiiUToolStripMenuItem";
-            this.wiiUToolStripMenuItem.Size = new System.Drawing.Size(125, 26);
-            this.wiiUToolStripMenuItem.Text = "WiiU";
-            this.wiiUToolStripMenuItem.Click += new System.EventHandler(this.PlatformMenuItem_Click);
+            wiiUToolStripMenuItem.Name = "wiiUToolStripMenuItem";
+            wiiUToolStripMenuItem.Size = new Size(125, 26);
+            wiiUToolStripMenuItem.Text = "WiiU";
+            wiiUToolStripMenuItem.Click += PlatformMenuItem_Click;
             // 
             // viewStripMenuItem
             // 
-            this.viewStripMenuItem.DropDownItems.AddRange(new System.Windows.Forms.ToolStripItem[] {
-            this.showUVToolStripMenuItem});
-            this.viewStripMenuItem.Name = "viewStripMenuItem";
-            this.viewStripMenuItem.Size = new System.Drawing.Size(55, 26);
-            this.viewStripMenuItem.Text = "View";
+            viewStripMenuItem.DropDownItems.AddRange(new ToolStripItem[] { showUVToolStripMenuItem });
+            viewStripMenuItem.Name = "viewStripMenuItem";
+            viewStripMenuItem.Size = new Size(55, 24);
+            viewStripMenuItem.Text = "View";
             // 
             // showUVToolStripMenuItem
             // 
-            this.showUVToolStripMenuItem.Name = "showUVToolStripMenuItem";
-            this.showUVToolStripMenuItem.ShortcutKeys = ((System.Windows.Forms.Keys)((System.Windows.Forms.Keys.Control | System.Windows.Forms.Keys.H)));
-            this.showUVToolStripMenuItem.Size = new System.Drawing.Size(214, 26);
-            this.showUVToolStripMenuItem.Text = "Show UV";
-            this.showUVToolStripMenuItem.Click += new System.EventHandler(this.showUVToolStripMenuItem_Click);
+            showUVToolStripMenuItem.Name = "showUVToolStripMenuItem";
+            showUVToolStripMenuItem.ShortcutKeys = Keys.Control | Keys.H;
+            showUVToolStripMenuItem.Size = new Size(204, 26);
+            showUVToolStripMenuItem.Text = "Show UV";
+            showUVToolStripMenuItem.Click += showUVToolStripMenuItem_Click;
             // 
             // aboutToolStripMenuItem
             // 
-            this.aboutToolStripMenuItem.Name = "aboutToolStripMenuItem";
-            this.aboutToolStripMenuItem.Size = new System.Drawing.Size(64, 26);
-            this.aboutToolStripMenuItem.Text = "About";
-            this.aboutToolStripMenuItem.Click += new System.EventHandler(this.aboutToolStripMenuItem_Click);
+            aboutToolStripMenuItem.Name = "aboutToolStripMenuItem";
+            aboutToolStripMenuItem.Size = new Size(64, 24);
+            aboutToolStripMenuItem.Text = "About";
+            aboutToolStripMenuItem.Click += aboutToolStripMenuItem_Click;
             // 
             // splitContainer1
             // 
-            this.splitContainer1.Dock = System.Windows.Forms.DockStyle.Fill;
-            this.splitContainer1.Location = new System.Drawing.Point(3, 2);
-            this.splitContainer1.Margin = new System.Windows.Forms.Padding(3, 2, 3, 2);
-            this.splitContainer1.Name = "splitContainer1";
+            splitContainer1.Dock = DockStyle.Fill;
+            splitContainer1.Location = new Point(3, 2);
+            splitContainer1.Margin = new Padding(3, 2, 3, 2);
+            splitContainer1.Name = "splitContainer1";
             // 
             // splitContainer1.Panel1
             // 
-            this.splitContainer1.Panel1.Controls.Add(this.listBoxEntries);
-            this.splitContainer1.Size = new System.Drawing.Size(862, 397);
-            this.splitContainer1.SplitterDistance = 285;
-            this.splitContainer1.TabIndex = 1;
+            splitContainer1.Panel1.Controls.Add(listBoxEntries);
+            splitContainer1.Size = new Size(862, 524);
+            splitContainer1.SplitterDistance = 285;
+            splitContainer1.TabIndex = 1;
             // 
             // listBoxEntries
             // 
-            this.listBoxEntries.Dock = System.Windows.Forms.DockStyle.Fill;
-            this.listBoxEntries.FormattingEnabled = true;
-            this.listBoxEntries.ItemHeight = 16;
-            this.listBoxEntries.Location = new System.Drawing.Point(0, 0);
-            this.listBoxEntries.Margin = new System.Windows.Forms.Padding(3, 2, 3, 2);
-            this.listBoxEntries.Name = "listBoxEntries";
-            this.listBoxEntries.Size = new System.Drawing.Size(285, 397);
-            this.listBoxEntries.TabIndex = 0;
-            this.listBoxEntries.SelectedIndexChanged += new System.EventHandler(this.ListBoxEntries_SelectedIndexChanged);
+            listBoxEntries.Dock = DockStyle.Fill;
+            listBoxEntries.FormattingEnabled = true;
+            listBoxEntries.Location = new Point(0, 0);
+            listBoxEntries.Margin = new Padding(3, 2, 3, 2);
+            listBoxEntries.Name = "listBoxEntries";
+            listBoxEntries.Size = new Size(285, 524);
+            listBoxEntries.TabIndex = 0;
+            listBoxEntries.SelectedIndexChanged += ListBoxEntries_SelectedIndexChanged;
             // 
             // tabControl1
             // 
-            this.tableLayoutPanel2.SetColumnSpan(this.tabControl1, 2);
-            this.tabControl1.Controls.Add(this.contentPage);
-            this.tabControl1.Controls.Add(this.charPage);
-            this.tabControl1.Dock = System.Windows.Forms.DockStyle.Fill;
-            this.tabControl1.Location = new System.Drawing.Point(3, 32);
-            this.tabControl1.Margin = new System.Windows.Forms.Padding(3, 2, 3, 2);
-            this.tabControl1.Name = "tabControl1";
-            this.tabControl1.SelectedIndex = 0;
-            this.tabControl1.Size = new System.Drawing.Size(876, 439);
-            this.tabControl1.TabIndex = 2;
+            tableLayoutPanel2.SetColumnSpan(tabControl1, 2);
+            tabControl1.Controls.Add(contentPage);
+            tabControl1.Controls.Add(charPage);
+            tabControl1.Dock = DockStyle.Fill;
+            tabControl1.Location = new Point(3, 38);
+            tabControl1.Margin = new Padding(3, 2, 3, 2);
+            tabControl1.Name = "tabControl1";
+            tabControl1.SelectedIndex = 0;
+            tabControl1.Size = new Size(876, 561);
+            tabControl1.TabIndex = 2;
             // 
             // contentPage
             // 
-            this.contentPage.Controls.Add(this.splitContainer1);
-            this.contentPage.Location = new System.Drawing.Point(4, 25);
-            this.contentPage.Margin = new System.Windows.Forms.Padding(3, 2, 3, 2);
-            this.contentPage.Name = "contentPage";
-            this.contentPage.Padding = new System.Windows.Forms.Padding(3, 2, 3, 2);
-            this.contentPage.Size = new System.Drawing.Size(868, 401);
-            this.contentPage.TabIndex = 0;
-            this.contentPage.Text = "Unpaked Content";
-            this.contentPage.UseVisualStyleBackColor = true;
+            contentPage.Controls.Add(splitContainer1);
+            contentPage.Location = new Point(4, 29);
+            contentPage.Margin = new Padding(3, 2, 3, 2);
+            contentPage.Name = "contentPage";
+            contentPage.Padding = new Padding(3, 2, 3, 2);
+            contentPage.Size = new Size(868, 528);
+            contentPage.TabIndex = 0;
+            contentPage.Text = "Unpaked Content";
+            contentPage.UseVisualStyleBackColor = true;
             // 
             // charPage
             // 
-            this.charPage.Controls.Add(this.tableLayoutPanel1);
-            this.charPage.Location = new System.Drawing.Point(4, 25);
-            this.charPage.Margin = new System.Windows.Forms.Padding(3, 2, 3, 2);
-            this.charPage.Name = "charPage";
-            this.charPage.Padding = new System.Windows.Forms.Padding(3, 2, 3, 2);
-            this.charPage.Size = new System.Drawing.Size(868, 410);
-            this.charPage.TabIndex = 1;
-            this.charPage.Text = "Char Table";
-            this.charPage.UseVisualStyleBackColor = true;
+            charPage.Controls.Add(tableLayoutPanel1);
+            charPage.Location = new Point(4, 29);
+            charPage.Margin = new Padding(3, 2, 3, 2);
+            charPage.Name = "charPage";
+            charPage.Padding = new Padding(3, 2, 3, 2);
+            charPage.Size = new Size(868, 528);
+            charPage.TabIndex = 1;
+            charPage.Text = "Char Table";
+            charPage.UseVisualStyleBackColor = true;
             // 
             // tableLayoutPanel1
             // 
-            this.tableLayoutPanel1.ColumnCount = 3;
-            this.tableLayoutPanel1.ColumnStyles.Add(new System.Windows.Forms.ColumnStyle());
-            this.tableLayoutPanel1.ColumnStyles.Add(new System.Windows.Forms.ColumnStyle(System.Windows.Forms.SizeType.Percent, 100F));
-            this.tableLayoutPanel1.ColumnStyles.Add(new System.Windows.Forms.ColumnStyle());
-            this.tableLayoutPanel1.Controls.Add(this.saveCharsetDataBtn, 2, 0);
-            this.tableLayoutPanel1.Controls.Add(this.languageComboBox, 1, 0);
-            this.tableLayoutPanel1.Controls.Add(this.label1, 0, 0);
-            this.tableLayoutPanel1.Controls.Add(this.charDataGridView, 0, 1);
-            this.tableLayoutPanel1.Dock = System.Windows.Forms.DockStyle.Fill;
-            this.tableLayoutPanel1.Location = new System.Drawing.Point(3, 2);
-            this.tableLayoutPanel1.Margin = new System.Windows.Forms.Padding(3, 2, 3, 2);
-            this.tableLayoutPanel1.Name = "tableLayoutPanel1";
-            this.tableLayoutPanel1.RowCount = 2;
-            this.tableLayoutPanel1.RowStyles.Add(new System.Windows.Forms.RowStyle());
-            this.tableLayoutPanel1.RowStyles.Add(new System.Windows.Forms.RowStyle());
-            this.tableLayoutPanel1.Size = new System.Drawing.Size(862, 406);
-            this.tableLayoutPanel1.TabIndex = 0;
+            tableLayoutPanel1.ColumnCount = 3;
+            tableLayoutPanel1.ColumnStyles.Add(new ColumnStyle());
+            tableLayoutPanel1.ColumnStyles.Add(new ColumnStyle(SizeType.Percent, 100F));
+            tableLayoutPanel1.ColumnStyles.Add(new ColumnStyle());
+            tableLayoutPanel1.Controls.Add(saveCharsetDataBtn, 2, 0);
+            tableLayoutPanel1.Controls.Add(languageComboBox, 1, 0);
+            tableLayoutPanel1.Controls.Add(label1, 0, 0);
+            tableLayoutPanel1.Controls.Add(charDataGridView, 0, 1);
+            tableLayoutPanel1.Dock = DockStyle.Fill;
+            tableLayoutPanel1.Location = new Point(3, 2);
+            tableLayoutPanel1.Margin = new Padding(3, 2, 3, 2);
+            tableLayoutPanel1.Name = "tableLayoutPanel1";
+            tableLayoutPanel1.RowCount = 2;
+            tableLayoutPanel1.RowStyles.Add(new RowStyle());
+            tableLayoutPanel1.RowStyles.Add(new RowStyle());
+            tableLayoutPanel1.Size = new Size(862, 524);
+            tableLayoutPanel1.TabIndex = 0;
             // 
             // saveCharsetDataBtn
             // 
-            this.saveCharsetDataBtn.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Left | System.Windows.Forms.AnchorStyles.Right)));
-            this.saveCharsetDataBtn.AutoSize = true;
-            this.saveCharsetDataBtn.Location = new System.Drawing.Point(778, 2);
-            this.saveCharsetDataBtn.Margin = new System.Windows.Forms.Padding(3, 2, 3, 2);
-            this.saveCharsetDataBtn.Name = "saveCharsetDataBtn";
-            this.saveCharsetDataBtn.Size = new System.Drawing.Size(81, 33);
-            this.saveCharsetDataBtn.TabIndex = 0;
-            this.saveCharsetDataBtn.Text = "Save";
-            this.saveCharsetDataBtn.UseVisualStyleBackColor = true;
-            this.saveCharsetDataBtn.Click += new System.EventHandler(this.saveCharsetDataBtn_Click);
+            saveCharsetDataBtn.Anchor = AnchorStyles.Left | AnchorStyles.Right;
+            saveCharsetDataBtn.AutoSize = true;
+            saveCharsetDataBtn.Location = new Point(778, 2);
+            saveCharsetDataBtn.Margin = new Padding(3, 2, 3, 2);
+            saveCharsetDataBtn.Name = "saveCharsetDataBtn";
+            saveCharsetDataBtn.Size = new Size(81, 41);
+            saveCharsetDataBtn.TabIndex = 0;
+            saveCharsetDataBtn.Text = "Save";
+            saveCharsetDataBtn.UseVisualStyleBackColor = true;
+            saveCharsetDataBtn.Click += saveCharsetDataBtn_Click;
             // 
             // languageComboBox
             // 
-            this.languageComboBox.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Left | System.Windows.Forms.AnchorStyles.Right)));
-            this.languageComboBox.DropDownStyle = System.Windows.Forms.ComboBoxStyle.DropDownList;
-            this.languageComboBox.FormattingEnabled = true;
-            this.languageComboBox.Location = new System.Drawing.Point(164, 6);
-            this.languageComboBox.Margin = new System.Windows.Forms.Padding(3, 2, 3, 2);
-            this.languageComboBox.Name = "languageComboBox";
-            this.languageComboBox.Size = new System.Drawing.Size(608, 24);
-            this.languageComboBox.TabIndex = 1;
+            languageComboBox.Anchor = AnchorStyles.Left | AnchorStyles.Right;
+            languageComboBox.DropDownStyle = ComboBoxStyle.DropDownList;
+            languageComboBox.FormattingEnabled = true;
+            languageComboBox.Location = new Point(175, 8);
+            languageComboBox.Margin = new Padding(3, 2, 3, 2);
+            languageComboBox.Name = "languageComboBox";
+            languageComboBox.Size = new Size(597, 28);
+            languageComboBox.TabIndex = 1;
+            languageComboBox.Visible = false;
             // 
             // label1
             // 
-            this.label1.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Left | System.Windows.Forms.AnchorStyles.Right)));
-            this.label1.AutoSize = true;
-            this.label1.Location = new System.Drawing.Point(3, 10);
-            this.label1.Name = "label1";
-            this.label1.Size = new System.Drawing.Size(155, 16);
-            this.label1.TabIndex = 2;
-            this.label1.Text = "Select Target Language:";
+            label1.Anchor = AnchorStyles.Left | AnchorStyles.Right;
+            label1.AutoSize = true;
+            label1.Location = new Point(3, 12);
+            label1.Name = "label1";
+            label1.Size = new Size(166, 20);
+            label1.TabIndex = 2;
+            label1.Text = "Select Target Language:";
+            label1.Visible = false;
             // 
             // charDataGridView
             // 
-            this.charDataGridView.BorderStyle = System.Windows.Forms.BorderStyle.None;
-            this.charDataGridView.ColumnHeadersHeightSizeMode = System.Windows.Forms.DataGridViewColumnHeadersHeightSizeMode.AutoSize;
-            this.tableLayoutPanel1.SetColumnSpan(this.charDataGridView, 3);
-            this.charDataGridView.Dock = System.Windows.Forms.DockStyle.Fill;
-            this.charDataGridView.Location = new System.Drawing.Point(3, 39);
-            this.charDataGridView.Margin = new System.Windows.Forms.Padding(3, 2, 3, 2);
-            this.charDataGridView.Name = "charDataGridView";
-            this.charDataGridView.RowHeadersWidth = 51;
-            this.charDataGridView.RowTemplate.Height = 24;
-            this.charDataGridView.Size = new System.Drawing.Size(856, 401);
-            this.charDataGridView.TabIndex = 3;
+            charDataGridView.BorderStyle = BorderStyle.None;
+            charDataGridView.ColumnHeadersHeightSizeMode = DataGridViewColumnHeadersHeightSizeMode.AutoSize;
+            tableLayoutPanel1.SetColumnSpan(charDataGridView, 3);
+            charDataGridView.Dock = DockStyle.Fill;
+            charDataGridView.Location = new Point(3, 47);
+            charDataGridView.Margin = new Padding(3, 2, 3, 2);
+            charDataGridView.Name = "charDataGridView";
+            charDataGridView.RowHeadersWidth = 51;
+            charDataGridView.RowTemplate.Height = 24;
+            charDataGridView.Size = new Size(856, 501);
+            charDataGridView.TabIndex = 3;
             // 
             // tableLayoutPanel2
             // 
-            this.tableLayoutPanel2.ColumnCount = 2;
-            this.tableLayoutPanel2.ColumnStyles.Add(new System.Windows.Forms.ColumnStyle());
-            this.tableLayoutPanel2.ColumnStyles.Add(new System.Windows.Forms.ColumnStyle(System.Windows.Forms.SizeType.Percent, 100F));
-            this.tableLayoutPanel2.Controls.Add(this.tabControl1, 0, 1);
-            this.tableLayoutPanel2.Controls.Add(this.label2, 0, 0);
-            this.tableLayoutPanel2.Controls.Add(this.charTablesComboBox, 1, 0);
-            this.tableLayoutPanel2.Dock = System.Windows.Forms.DockStyle.Fill;
-            this.tableLayoutPanel2.Location = new System.Drawing.Point(0, 30);
-            this.tableLayoutPanel2.Name = "tableLayoutPanel2";
-            this.tableLayoutPanel2.RowCount = 2;
-            this.tableLayoutPanel2.RowStyles.Add(new System.Windows.Forms.RowStyle());
-            this.tableLayoutPanel2.RowStyles.Add(new System.Windows.Forms.RowStyle());
-            this.tableLayoutPanel2.Size = new System.Drawing.Size(882, 473);
-            this.tableLayoutPanel2.TabIndex = 3;
+            tableLayoutPanel2.ColumnCount = 2;
+            tableLayoutPanel2.ColumnStyles.Add(new ColumnStyle());
+            tableLayoutPanel2.ColumnStyles.Add(new ColumnStyle(SizeType.Percent, 100F));
+            tableLayoutPanel2.Controls.Add(tabControl1, 0, 1);
+            tableLayoutPanel2.Controls.Add(label2, 0, 0);
+            tableLayoutPanel2.Controls.Add(charTablesComboBox, 1, 0);
+            tableLayoutPanel2.Dock = DockStyle.Fill;
+            tableLayoutPanel2.Location = new Point(0, 28);
+            tableLayoutPanel2.Margin = new Padding(3, 4, 3, 4);
+            tableLayoutPanel2.Name = "tableLayoutPanel2";
+            tableLayoutPanel2.RowCount = 2;
+            tableLayoutPanel2.RowStyles.Add(new RowStyle());
+            tableLayoutPanel2.RowStyles.Add(new RowStyle());
+            tableLayoutPanel2.Size = new Size(882, 601);
+            tableLayoutPanel2.TabIndex = 3;
             // 
             // label2
             // 
-            this.label2.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Left | System.Windows.Forms.AnchorStyles.Right)));
-            this.label2.AutoSize = true;
-            this.label2.Location = new System.Drawing.Point(3, 7);
-            this.label2.Name = "label2";
-            this.label2.Size = new System.Drawing.Size(279, 16);
-            this.label2.TabIndex = 3;
-            this.label2.Text = "Select CharTable for Decoding\\Encoding text:";
+            label2.Anchor = AnchorStyles.Left | AnchorStyles.Right;
+            label2.AutoSize = true;
+            label2.Location = new Point(3, 8);
+            label2.Name = "label2";
+            label2.Size = new Size(310, 20);
+            label2.TabIndex = 3;
+            label2.Text = "Select CharTable for Decoding\\Encoding text:";
             // 
             // charTablesComboBox
             // 
-            this.charTablesComboBox.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Left | System.Windows.Forms.AnchorStyles.Right)));
-            this.charTablesComboBox.DropDownStyle = System.Windows.Forms.ComboBoxStyle.DropDownList;
-            this.charTablesComboBox.FormattingEnabled = true;
-            this.charTablesComboBox.Location = new System.Drawing.Point(288, 3);
-            this.charTablesComboBox.Name = "charTablesComboBox";
-            this.charTablesComboBox.Size = new System.Drawing.Size(591, 24);
-            this.charTablesComboBox.TabIndex = 4;
-            this.charTablesComboBox.SelectedIndexChanged += new System.EventHandler(this.charTablesComboBox_SelectedIndexChanged);
+            charTablesComboBox.Anchor = AnchorStyles.Left | AnchorStyles.Right;
+            charTablesComboBox.DropDownStyle = ComboBoxStyle.DropDownList;
+            charTablesComboBox.FormattingEnabled = true;
+            charTablesComboBox.Location = new Point(319, 4);
+            charTablesComboBox.Margin = new Padding(3, 4, 3, 4);
+            charTablesComboBox.Name = "charTablesComboBox";
+            charTablesComboBox.Size = new Size(560, 28);
+            charTablesComboBox.TabIndex = 4;
+            charTablesComboBox.SelectedIndexChanged += charTablesComboBox_SelectedIndexChanged;
             // 
             // MainForm
             // 
-            this.AutoScaleDimensions = new System.Drawing.SizeF(8F, 16F);
-            this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
-            this.ClientSize = new System.Drawing.Size(882, 503);
-            this.Controls.Add(this.tableLayoutPanel2);
-            this.Controls.Add(this.menuStrip1);
-            this.MainMenuStrip = this.menuStrip1;
-            this.Margin = new System.Windows.Forms.Padding(3, 2, 3, 2);
-            this.Name = "MainForm";
-            this.StartPosition = System.Windows.Forms.FormStartPosition.CenterScreen;
-            this.Text = "MES Tool GUI";
-            this.Load += new System.EventHandler(this.MainForm_Load);
-            this.menuStrip1.ResumeLayout(false);
-            this.menuStrip1.PerformLayout();
-            this.splitContainer1.Panel1.ResumeLayout(false);
-            ((System.ComponentModel.ISupportInitialize)(this.splitContainer1)).EndInit();
-            this.splitContainer1.ResumeLayout(false);
-            this.tabControl1.ResumeLayout(false);
-            this.contentPage.ResumeLayout(false);
-            this.charPage.ResumeLayout(false);
-            this.tableLayoutPanel1.ResumeLayout(false);
-            this.tableLayoutPanel1.PerformLayout();
-            ((System.ComponentModel.ISupportInitialize)(this.charDataGridView)).EndInit();
-            this.tableLayoutPanel2.ResumeLayout(false);
-            this.tableLayoutPanel2.PerformLayout();
-            this.ResumeLayout(false);
-            this.PerformLayout();
+            AutoScaleDimensions = new SizeF(8F, 20F);
+            AutoScaleMode = AutoScaleMode.Font;
+            ClientSize = new Size(882, 629);
+            Controls.Add(tableLayoutPanel2);
+            Controls.Add(menuStrip1);
+            MainMenuStrip = menuStrip1;
+            Margin = new Padding(3, 2, 3, 2);
+            Name = "MainForm";
+            StartPosition = FormStartPosition.CenterScreen;
+            Text = "MES Tool GUI";
+            Load += MainForm_Load;
+            menuStrip1.ResumeLayout(false);
+            menuStrip1.PerformLayout();
+            splitContainer1.Panel1.ResumeLayout(false);
+            ((System.ComponentModel.ISupportInitialize)splitContainer1).EndInit();
+            splitContainer1.ResumeLayout(false);
+            tabControl1.ResumeLayout(false);
+            contentPage.ResumeLayout(false);
+            charPage.ResumeLayout(false);
+            tableLayoutPanel1.ResumeLayout(false);
+            tableLayoutPanel1.PerformLayout();
+            ((System.ComponentModel.ISupportInitialize)charDataGridView).EndInit();
+            tableLayoutPanel2.ResumeLayout(false);
+            tableLayoutPanel2.PerformLayout();
+            ResumeLayout(false);
+            PerformLayout();
 
         }
 
@@ -418,5 +425,7 @@
         private System.Windows.Forms.TableLayoutPanel tableLayoutPanel2;
         private System.Windows.Forms.Label label2;
         private System.Windows.Forms.ComboBox charTablesComboBox;
+        private ToolStripMenuItem saveTextureAsDDSToolStripMenuItem;
+        private ToolStripMenuItem exportModifiedTextureAndCharTableToolStripMenuItem;
     }
 }

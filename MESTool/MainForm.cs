@@ -1,4 +1,4 @@
-﻿using Pfim;
+﻿
 using System;
 using System.Collections.Generic;
 using System.ComponentModel;
@@ -41,7 +41,7 @@ namespace MESTool
 
                 _mesProcessor = new MesToolProcessor();
                 _mesProcessor.Plat = Platform.PC;
-               
+
                 PopulateCharTableComboBox();
                 PopulateCharGridView();
             }
@@ -72,6 +72,8 @@ namespace MESTool
                 Visible = false
             };
 
+            textureViewer.TextureModifiedChanged += TextureViewer_TextureModifiedChanged;
+
             this.splitContainer1.Panel2.Controls.Add(textBoxContent);
             this.splitContainer1.Panel2.Controls.Add(textureViewer);
         }
@@ -101,7 +103,7 @@ namespace MESTool
 
         private void PlatformMenuItem_Click(object sender, EventArgs e)
         {
-            
+
             if (sender is ToolStripMenuItem clickedItem)
             {
                 Platform selectedPlatform;
@@ -114,15 +116,45 @@ namespace MESTool
                 else if (clickedItem == wiiUToolStripMenuItem)
                     selectedPlatform = Platform.WiiU;
                 else
-                    return; 
+                    return;
 
                 SetPlatform(selectedPlatform);
             }
         }
 
+        private void SaveTexture()
+        {
+            Bitmap? modifiedTexture = textureViewer.GetModifiedTexture();
+            if (modifiedTexture == null)
+            {
+                MessageBox.Show("No texture is currently loaded to be saved.", "Information", MessageBoxButtons.OK, MessageBoxIcon.Information);
+                return;
+            }
+
+            using (SaveFileDialog sfd = new SaveFileDialog())
+            {
+                sfd.Filter = "DirectDraw Surface (*.dds)|*.dds";
+                sfd.Title = "Save Texture";
+                sfd.FileName = "Texture_modified.dds";
+
+                if (sfd.ShowDialog() == DialogResult.OK)
+                {
+                    try
+                    {
+                        DDSUtil.SaveTextureAsDds(modifiedTexture, sfd.FileName);
+                        MessageBox.Show("Texture saved successfully!", "Success", MessageBoxButtons.OK, MessageBoxIcon.Information);
+                    }
+                    catch (Exception ex)
+                    {
+                        MessageBox.Show($"Failed to save texture: {ex.Message}", "Error", MessageBoxButtons.OK, MessageBoxIcon.Error);
+                    }
+                }
+            }
+        }
+
         private void SetPlatform(Platform platform)
         {
-           
+
             if (_mesProcessor != null)
             {
                 _mesProcessor.Plat = platform;
@@ -169,7 +201,25 @@ namespace MESTool
 
         private void ListBoxEntries_SelectedIndexChanged(object sender, EventArgs e)
         {
-            if (listBoxEntries.SelectedItem == null) return;
+            if (listBoxEntries.SelectedItem == null)
+            {
+                return;
+            }
+
+            if (textureViewer.Visible && textureViewer.IsTextureModified())
+            {
+                var result = MessageBox.Show("You have unsaved changes in the texture viewer. Do you want to save them?", "Unsaved Changes", MessageBoxButtons.YesNoCancel, MessageBoxIcon.Warning);
+                if (result == DialogResult.Yes)
+                {
+                    SaveTexture();
+                    SaveCharsetTabe(textureViewer.GetCharTable());
+
+                }
+                else if (result == DialogResult.Cancel)
+                {
+                    return;
+                }
+            }
 
             SaveChangesToCurrentFile();
 
@@ -182,10 +232,10 @@ namespace MESTool
                 SwitchToView(textureViewer);
                 try
                 {
-                    Bitmap texture = LoadTexture(_currentlySelectedFilePath);
-                    TextureMapInfo textureMapInfo = _mesProcessor.LoadTextureMapInfo(_dumpFolderPath);
+                    Bitmap texture = DDSUtil.LoadTexture(_currentlySelectedFilePath);
+                    TextureMapInfo? textureMapInfo = _mesProcessor.LoadTextureMapInfo(_dumpFolderPath);
                     textureViewer.SetCharTable(_mesProcessor.GetCharTableForDisplay());
-                    textureViewer.SetTexture(texture, textureMapInfo?.UVTable.Entries);
+                    textureViewer.SetTexture(texture, textureMapInfo!.UVTable.Entries);
 
                     textureViewer.ShowUV(showUVToolStripMenuItem.Checked);
                 }
@@ -310,75 +360,6 @@ namespace MESTool
             }
         }
 
-        public Bitmap LoadTexture(string filePath)
-        {
-            byte[] fileData = File.ReadAllBytes(filePath);
-            string extension = Path.GetExtension(filePath).ToLower();
-
-            byte[] ddsData;
-
-            if (extension == ".wtb")
-            {
-                ddsData = ExtractDdsFromWtb(fileData);
-            }
-            else if (extension == ".dds")
-            {
-                ddsData = fileData;
-            }
-            else
-            {
-                return new Bitmap(filePath);
-            }
-
-            if (ddsData == null || ddsData.Length == 0)
-            {
-                throw new Exception("Texture data is empty or could not be extracted.");
-            }
-
-            using (var stream = new MemoryStream(ddsData))
-            using (var image = Pfimage.FromStream(stream))
-            {
-                PixelFormat format;
-                switch (image.Format)
-                {
-                    case Pfim.ImageFormat.Rgba32:
-                        format = PixelFormat.Format32bppArgb;
-                        break;
-                    case Pfim.ImageFormat.Rgb24:
-                        format = PixelFormat.Format24bppRgb;
-                        break;
-                    default:
-                        throw new NotImplementedException($"Unsupported image format: {image.Format}");
-                }
-
-                var bitmap = new Bitmap(image.Width, image.Height, format);
-                var bmpData = bitmap.LockBits(new Rectangle(0, 0, image.Width, image.Height), ImageLockMode.WriteOnly, format);
-
-                Marshal.Copy(image.Data, 0, bmpData.Scan0, image.DataLen);
-
-                bitmap.UnlockBits(bmpData);
-                return bitmap;
-            }
-        }
-
-        private byte[] ExtractDdsFromWtb(byte[] wtbData)
-        {
-
-            const uint ddsSignature = 0x20534444; // "DDS " в little-endian   
-            for (int i = 0; i <= wtbData.Length - 4; i++)
-            {
-                if (BitConverter.ToUInt32(wtbData, i) == ddsSignature)
-                {
-                    int ddsLength = wtbData.Length - i;
-                    byte[] ddsData = new byte[ddsLength];
-                    Array.Copy(wtbData, i, ddsData, 0, ddsLength);
-                    return ddsData;
-                }
-            }
-
-            throw new Exception("DDS signature not found in WTB file.");
-        }
-
         private void exitToolStripMenuItem_Click(object sender, EventArgs e)
         {
             SaveChangesToCurrentFile();
@@ -432,7 +413,7 @@ namespace MESTool
         private void PopulateCharGridView()
         {
             var charTableData = _mesProcessor.GetCharTableForDisplay();
-            
+
             var charEntries = new List<CharMapEntry>();
             foreach (var kvp in charTableData)
             {
@@ -444,11 +425,11 @@ namespace MESTool
                     Character = kvp.Value.Replace("\n", "\\n").Replace("\r", "")
                 });
             }
-            
-            charDataGridView.DataSource = null; 
+
+            charDataGridView.DataSource = null;
             charDataGridView.Columns.Clear();
-            charDataGridView.AutoGenerateColumns = false; 
-            charDataGridView.RowHeadersVisible = false; 
+            charDataGridView.AutoGenerateColumns = false;
+            charDataGridView.RowHeadersVisible = false;
 
             charDataGridView.Columns.Add(new DataGridViewTextBoxColumn
             {
@@ -482,13 +463,45 @@ namespace MESTool
                 HeaderText = "Character",
                 AutoSizeMode = DataGridViewAutoSizeColumnMode.Fill
             });
-           
+
             charDataGridView.DataSource = new BindingList<CharMapEntry>(charEntries);
         }
 
+        private void SaveCharsetTabe(Dictionary<ushort, string> charsetTabe)
+        {
+
+            using (SaveFileDialog sfd = new SaveFileDialog())
+            {
+                sfd.Filter = "Text Files (*.txt)|*.txt|All Files (*.*)|*.*";
+                sfd.Title = "Save Character Table";
+                sfd.FileName = "CharTable.txt";
+
+                if (sfd.ShowDialog() == DialogResult.OK)
+                {
+                    try
+                    {
+                        string fileContent = DictionaryUtils.GenerateCharTableContent(charsetTabe);
+
+                        if (string.IsNullOrEmpty(fileContent))
+                        {
+                            MessageBox.Show("Character map is empty. Nothing to save.", "Information", MessageBoxButtons.OK, MessageBoxIcon.Information);
+                            return;
+                        }
+
+                        File.WriteAllText(sfd.FileName, fileContent, Encoding.UTF8);
+
+                        MessageBox.Show("Character table saved successfully!", "Success", MessageBoxButtons.OK, MessageBoxIcon.Information);
+                    }
+                    catch (Exception ex)
+                    {
+                        MessageBox.Show($"An error occurred while saving the file:\n{ex.Message}", "Error", MessageBoxButtons.OK, MessageBoxIcon.Error);
+                    }
+                }
+            }
+        }
         private void saveCharsetDataBtn_Click(object sender, EventArgs e)
         {
-            
+
             if (charDataGridView.DataSource == null)
             {
                 MessageBox.Show("There is no character map data to save.", "Information", MessageBoxButtons.OK, MessageBoxIcon.Information);
@@ -499,7 +512,7 @@ namespace MESTool
             {
                 sfd.Filter = "Text Files (*.txt)|*.txt|All Files (*.*)|*.*";
                 sfd.Title = "Save Character Table";
-                sfd.FileName = "CharTable.txt"; 
+                sfd.FileName = "CharTable.txt";
 
                 if (sfd.ShowDialog() == DialogResult.OK)
                 {
@@ -562,10 +575,10 @@ namespace MESTool
                 }
 
                 string charTableContent = File.ReadAllText(charTablePath, Encoding.UTF8);
-  
+
                 _mesProcessor.InitializeCharTable(charTableContent);
-  
-                SetPlatform(GetCurrentSelectedPlatform());   
+
+                SetPlatform(GetCurrentSelectedPlatform());
                 PopulateCharGridView();
 
                 if (textureViewer.Visible)
@@ -587,6 +600,21 @@ namespace MESTool
             if (x360ToolStripMenuItem.Checked) return Platform.X360;
             if (wiiUToolStripMenuItem.Checked) return Platform.WiiU;
             return Platform.PC;
+        }
+
+        private void saveTextureAsDDSToolStripMenuItem_Click(object sender, EventArgs e)
+        {
+            SaveTexture();
+        }
+
+        private void exportModifiedTextureAndCharTableToolStripMenuItem_Click(object sender, EventArgs e)
+        {
+            SaveTexture();
+            SaveCharsetTabe(textureViewer.GetCharTable());
+        }
+        private void TextureViewer_TextureModifiedChanged(object? sender, EventArgs e)
+        {
+            exportModifiedTextureAndCharTableToolStripMenuItem.Enabled = textureViewer.IsTextureModified();
         }
 
     }
