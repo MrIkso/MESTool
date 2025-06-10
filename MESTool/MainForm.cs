@@ -1,0 +1,530 @@
+﻿using Pfim;
+using System;
+using System.Collections.Generic;
+using System.ComponentModel;
+using System.Diagnostics;
+using System.Drawing;
+using System.Drawing.Imaging;
+using System.IO;
+using System.Linq;
+using System.Reflection;
+using System.Runtime.InteropServices;
+using System.Text;
+using System.Windows.Forms;
+using static MESTool.MesToolProcessor;
+
+namespace MESTool
+{
+    public partial class MainForm : Form
+    {
+        private string _currentMesPath;
+        private string _dumpFolderPath;
+        private string _currentlySelectedFilePath;
+
+        private TextBox textBoxContent;
+        private TextureViewer textureViewer;
+
+        private MesToolProcessor _mesProcessor;
+
+        public MainForm()
+        {
+            InitializeComponent();
+            InitializeDynamicControls();
+        }
+
+        private void MainForm_Load(object sender, EventArgs e)
+        {
+            try
+            {
+                string exePath = Assembly.GetExecutingAssembly().Location;
+                string exeDirectory = Path.GetDirectoryName(exePath);
+
+                string charTablePath = Path.Combine(exeDirectory, "Resources", "CharTable.txt");
+                if (!File.Exists(charTablePath))
+                {
+                    MessageBox.Show($"CharTable.txt not found in Resources folder at {charTablePath}.", "Error", MessageBoxButtons.OK, MessageBoxIcon.Error);
+                    Close();
+                    return;
+                }
+                string charTableContent = File.ReadAllText(charTablePath, Encoding.UTF8);
+                _mesProcessor = new MesToolProcessor(charTableContent);
+                _mesProcessor.Plat = Platform.PC;
+                PopulateCharGridView();
+            }
+            catch (Exception ex)
+            {
+                MessageBox.Show($"Critical initialization error: {ex.Message}", "Error", MessageBoxButtons.OK, MessageBoxIcon.Error);
+                Close();
+            }
+        }
+
+        private void InitializeDynamicControls()
+        {
+            textBoxContent = new TextBox
+            {
+                Name = "textBoxContent",
+                Dock = DockStyle.Fill,
+                Multiline = true,
+                ScrollBars = ScrollBars.Vertical,
+                Font = new Font("Consolas", 9.75f),
+                Visible = true
+            };
+            textBoxContent.Leave += TextBoxContent_Leave;
+
+            textureViewer = new TextureViewer
+            {
+                Name = "textureViewer",
+                Dock = DockStyle.Fill,
+                Visible = false
+            };
+
+            this.splitContainer1.Panel2.Controls.Add(textBoxContent);
+            this.splitContainer1.Panel2.Controls.Add(textureViewer);
+
+        }
+
+        private void MenuFileOpen_Click(object sender, EventArgs e)
+        {
+            using (OpenFileDialog ofd = new OpenFileDialog { Filter = "MES files (*.mes)|*.mes" })
+            {
+                if (ofd.ShowDialog() == DialogResult.OK)
+                {
+                    _currentMesPath = ofd.FileName;
+                    _dumpFolderPath = Path.GetFileNameWithoutExtension(_currentMesPath);
+
+                    try
+                    {
+                        _mesProcessor.Dump(_currentMesPath, _dumpFolderPath);
+                        LoadFileList(_dumpFolderPath);
+                        MessageBox.Show($"File unpacked successfully into the '{_dumpFolderPath}' folder.", "Information", MessageBoxButtons.OK, MessageBoxIcon.Information);
+                    }
+                    catch (Exception ex)
+                    {
+                        MessageBox.Show($"Error while unpacking the file:\n{ex.Message}", "Error", MessageBoxButtons.OK, MessageBoxIcon.Error);
+                    }
+                }
+            }
+        }
+
+        private void PlatformMenuItem_Click(object sender, EventArgs e)
+        {
+            
+            if (sender is ToolStripMenuItem clickedItem)
+            {
+               
+                Platform selectedPlatform;
+                if (clickedItem == pCToolStripMenuItem)
+                    selectedPlatform = Platform.PC;
+                else if (clickedItem == pS3ToolStripMenuItem)
+                    selectedPlatform = Platform.PS3;
+                else if (clickedItem == x360ToolStripMenuItem)
+                    selectedPlatform = Platform.X360;
+                else if (clickedItem == wiiUToolStripMenuItem)
+                    selectedPlatform = Platform.WiiU;
+                else
+                    return; 
+
+                SetPlatform(selectedPlatform);
+            }
+        }
+
+        private void SetPlatform(Platform platform)
+        {
+           
+            if (_mesProcessor != null)
+            {
+                _mesProcessor.Plat = platform;
+            }
+
+            pCToolStripMenuItem.Checked = false;
+            pS3ToolStripMenuItem.Checked = false;
+            x360ToolStripMenuItem.Checked = false;
+            wiiUToolStripMenuItem.Checked = false;
+
+           
+            switch (platform)
+            {
+                case Platform.PC:
+                    pCToolStripMenuItem.Checked = true;
+                    break;
+                case Platform.PS3:
+                    pS3ToolStripMenuItem.Checked = true;
+                    break;
+                case Platform.X360:
+                    x360ToolStripMenuItem.Checked = true;
+                    break;
+                case Platform.WiiU:
+                    wiiUToolStripMenuItem.Checked = true;
+                    break;
+            }
+        }
+
+        private void LoadFileList(string folderPath)
+        {
+            listBoxEntries.Items.Clear();
+            textBoxContent.Clear();
+            _currentlySelectedFilePath = null;
+            if (!Directory.Exists(folderPath)) return;
+
+            var files = Directory.GetFiles(folderPath);
+            foreach (var file in files)
+            {
+                listBoxEntries.Items.Add(Path.GetFileName(file));
+            }
+        }
+
+        private void ListBoxEntries_SelectedIndexChanged(object sender, EventArgs e)
+        {
+            if (listBoxEntries.SelectedItem == null) return;
+
+            SaveChangesToCurrentFile();
+
+            string selectedFileName = listBoxEntries.SelectedItem.ToString();
+            _currentlySelectedFilePath = Path.Combine(_dumpFolderPath, selectedFileName);
+            string extension = Path.GetExtension(selectedFileName).ToLower();
+
+            if (extension == ".dds" || extension == ".wtb" || extension == ".png" || extension == ".jpg")
+            {
+                SwitchToView(textureViewer);
+                try
+                {
+                    Bitmap texture = LoadTexture(_currentlySelectedFilePath);
+                    TextureMapInfo textureMapInfo = _mesProcessor.LoadTextureMapInfo(_dumpFolderPath);
+                    textureViewer.SetCharTable(_mesProcessor.GetCharTableForDisplay());
+                    textureViewer.SetTexture(texture, textureMapInfo?.UVTable.Entries);
+
+                    textureViewer.ShowUV(showUVToolStripMenuItem.Checked);
+                }
+                catch (Exception ex)
+                {
+                    Debug.WriteLine(ex);
+                    MessageBox.Show($"Could not load texture '{selectedFileName}':\n{ex.Message}", "Error", MessageBoxButtons.OK, MessageBoxIcon.Error);
+
+                    textureViewer.Clear();
+                }
+            }
+            else
+            {
+                textureViewer.Clear();
+                SwitchToView(textBoxContent);
+                try
+                {
+                    textBoxContent.Text = File.ReadAllText(_currentlySelectedFilePath);
+                }
+                catch (Exception ex)
+                {
+                    MessageBox.Show($"Could not read file '{selectedFileName}':\n{ex.Message}", "Error", MessageBoxButtons.OK, MessageBoxIcon.Error);
+                    textBoxContent.Text = "";
+                }
+            }
+        }
+
+        private void SwitchToView(Control viewToShow)
+        {
+            foreach (Control control in this.splitContainer1.Panel2.Controls)
+            {
+                control.Visible = false;
+            }
+
+            if (viewToShow != null)
+            {
+                viewToShow.Visible = true;
+            }
+        }
+
+        private void TextBoxContent_Leave(object sender, EventArgs e)
+        {
+            SaveChangesToCurrentFile();
+        }
+
+        private void SaveChangesToCurrentFile()
+        {
+            if (string.IsNullOrEmpty(_currentlySelectedFilePath) || !File.Exists(_currentlySelectedFilePath))
+            {
+                return;
+            }
+
+
+            string extension = Path.GetExtension(_currentlySelectedFilePath).ToLower();
+            if (extension == ".dds" || extension == ".wtb")
+            {
+                return;
+            }
+
+            try
+            {
+                string currentFileContent = File.ReadAllText(_currentlySelectedFilePath, Encoding.UTF8);
+                if (currentFileContent != textBoxContent.Text)
+                {
+                    File.WriteAllText(_currentlySelectedFilePath, textBoxContent.Text, Encoding.UTF8);
+                }
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine($"Failed to save changes to {_currentlySelectedFilePath}: {ex.Message}");
+            }
+        }
+
+        private void MenuFileRebuild_Click(object sender, EventArgs e)
+        {
+            if (string.IsNullOrEmpty(_dumpFolderPath) || !Directory.Exists(_dumpFolderPath))
+            {
+                MessageBox.Show("First, open and unpack a .mes file.", "Attention", MessageBoxButtons.OK, MessageBoxIcon.Warning);
+                return;
+            }
+
+            SaveChangesToCurrentFile();
+            SaveAndRebuildFromFolder(_dumpFolderPath, Path.GetFileName(_currentMesPath));
+        }
+
+        private void MenuFileRebuildFromFolder_Click(object sender, EventArgs e)
+        {
+            using (var fbd = new OpenFileDialog())
+            {
+                fbd.ValidateNames = false;
+                fbd.CheckFileExists = false;
+                fbd.CheckPathExists = true;
+                if (fbd.ShowDialog() == DialogResult.OK)
+                {
+                    _dumpFolderPath = Path.GetDirectoryName(fbd.FileName);
+                    if (!File.Exists(Path.Combine(_dumpFolderPath, "Texts.txt")))
+                    {
+                        MessageBox.Show("The selected folder does not contain Texts.txt. Please specify the correct folder.", "Error", MessageBoxButtons.OK, MessageBoxIcon.Error);
+                        return;
+                    }
+
+                    LoadFileList(_dumpFolderPath);
+                }
+            }
+        }
+
+        private void SaveAndRebuildFromFolder(string folderPath, string defaultFileName)
+        {
+            using (SaveFileDialog sfd = new SaveFileDialog { Filter = "MES files (*.mes)|*.mes", FileName = defaultFileName })
+            {
+                if (sfd.ShowDialog() == DialogResult.OK)
+                {
+                    try
+                    {
+                        _mesProcessor.Create(folderPath, sfd.FileName);
+                        MessageBox.Show("File rebuilt successfully!", "Information", MessageBoxButtons.OK, MessageBoxIcon.Information);
+                    }
+                    catch (Exception ex)
+                    {
+                        MessageBox.Show($"Error while rebuilding the file:\n{ex.Message}", "Error", MessageBoxButtons.OK, MessageBoxIcon.Error);
+                    }
+                }
+            }
+        }
+
+        public Bitmap LoadTexture(string filePath)
+        {
+            byte[] fileData = File.ReadAllBytes(filePath);
+            string extension = Path.GetExtension(filePath).ToLower();
+
+            byte[] ddsData;
+
+            if (extension == ".wtb")
+            {
+                ddsData = ExtractDdsFromWtb(fileData);
+            }
+            else if (extension == ".dds")
+            {
+                ddsData = fileData;
+            }
+            else
+            {
+                return new Bitmap(filePath);
+            }
+
+            if (ddsData == null || ddsData.Length == 0)
+            {
+                throw new Exception("Texture data is empty or could not be extracted.");
+            }
+
+            using (var stream = new MemoryStream(ddsData))
+            using (var image = Pfimage.FromStream(stream))
+            {
+                PixelFormat format;
+                switch (image.Format)
+                {
+                    case Pfim.ImageFormat.Rgba32:
+                        format = PixelFormat.Format32bppArgb;
+                        break;
+                    case Pfim.ImageFormat.Rgb24:
+                        format = PixelFormat.Format24bppRgb;
+                        break;
+                    default:
+                        throw new NotImplementedException($"Unsupported image format: {image.Format}");
+                }
+
+                var bitmap = new Bitmap(image.Width, image.Height, format);
+                var bmpData = bitmap.LockBits(new Rectangle(0, 0, image.Width, image.Height), ImageLockMode.WriteOnly, format);
+
+                Marshal.Copy(image.Data, 0, bmpData.Scan0, image.DataLen);
+
+                bitmap.UnlockBits(bmpData);
+                return bitmap;
+            }
+        }
+
+        private byte[] ExtractDdsFromWtb(byte[] wtbData)
+        {
+
+            const uint ddsSignature = 0x20534444; // "DDS " в little-endian   
+            for (int i = 0; i <= wtbData.Length - 4; i++)
+            {
+                if (BitConverter.ToUInt32(wtbData, i) == ddsSignature)
+                {
+                    int ddsLength = wtbData.Length - i;
+                    byte[] ddsData = new byte[ddsLength];
+                    Array.Copy(wtbData, i, ddsData, 0, ddsLength);
+                    return ddsData;
+                }
+            }
+
+            throw new Exception("DDS signature not found in WTB file.");
+        }
+
+        private void exitToolStripMenuItem_Click(object sender, EventArgs e)
+        {
+            SaveChangesToCurrentFile();
+            Close();
+        }
+
+        private void showUVToolStripMenuItem_Click(object sender, EventArgs e)
+        {
+            showUVToolStripMenuItem.Checked = !showUVToolStripMenuItem.Checked;
+
+            textureViewer.ShowUV(showUVToolStripMenuItem.Checked);
+        }
+
+        private void PopulateCharGridView()
+        {
+            
+            var charTableData = _mesProcessor.GetCharTableForDisplay();
+            
+            var charEntries = new List<CharMapEntry>();
+            foreach (var kvp in charTableData)
+            {
+                charEntries.Add(new CharMapEntry
+                {
+                    SortKey = kvp.Key,
+                    DecCode = kvp.Key.ToString(),
+                    HexCode = $"{kvp.Key:X4}",
+                    Character = kvp.Value.Replace("\n", "\\n").Replace("\r", "")
+                });
+            }
+            
+            charDataGridView.DataSource = null; 
+            charDataGridView.Columns.Clear();
+            charDataGridView.AutoGenerateColumns = false; 
+            charDataGridView.RowHeadersVisible = false; 
+
+            charDataGridView.Columns.Add(new DataGridViewTextBoxColumn
+            {
+                Name = "SortKeyColumn",
+                DataPropertyName = "SortKey",
+                Visible = false
+            });
+
+            
+            charDataGridView.Columns.Add(new DataGridViewTextBoxColumn
+            {
+                Name = "DecCodeColumn",
+                DataPropertyName = "DecCode",
+                HeaderText = "DEC",
+                Width = 60,
+                DefaultCellStyle = new DataGridViewCellStyle { Alignment = DataGridViewContentAlignment.MiddleRight } // Вирівнювання
+            });
+
+            
+            charDataGridView.Columns.Add(new DataGridViewTextBoxColumn
+            {
+                Name = "HexCodeColumn",
+                DataPropertyName = "HexCode",
+                HeaderText = "HEX",
+                Width = 60,
+                DefaultCellStyle = new DataGridViewCellStyle { Alignment = DataGridViewContentAlignment.MiddleRight }
+            });
+
+           
+            charDataGridView.Columns.Add(new DataGridViewTextBoxColumn
+            {
+                Name = "CharacterColumn",
+                DataPropertyName = "Character",
+                HeaderText = "Character",
+                AutoSizeMode = DataGridViewAutoSizeColumnMode.Fill
+            });
+           
+            charDataGridView.DataSource = new BindingList<CharMapEntry>(charEntries);
+        }
+
+        private void saveCharsetDataBtn_Click(object sender, EventArgs e)
+        {
+            
+            if (charDataGridView.DataSource == null)
+            {
+                MessageBox.Show("There is no character map data to save.", "Information", MessageBoxButtons.OK, MessageBoxIcon.Information);
+                return;
+            }
+
+            using (SaveFileDialog sfd = new SaveFileDialog())
+            {
+                sfd.Filter = "Text Files (*.txt)|*.txt|All Files (*.*)|*.*";
+                sfd.Title = "Save Character Table";
+                sfd.FileName = "CharTable.txt"; 
+
+                if (sfd.ShowDialog() == DialogResult.OK)
+                {
+                    try
+                    {
+                        
+                        var charEntries = (charDataGridView.DataSource as BindingList<CharMapEntry>);
+                        if (charEntries == null)
+                        {
+                            throw new Exception("Could not retrieve data source from the grid.");
+                        }
+
+                        var sortedEntries = charEntries.OrderBy(entry => entry.SortKey);
+
+                      
+                        StringBuilder fileContent = new StringBuilder();
+                        foreach (var entry in sortedEntries)
+                        {
+
+                            string hexCode = entry.SortKey.ToString("X");
+
+                            string characterValue = entry.Character.Replace("\\n", "\n");
+
+                            // Формуємо рядок "КОД=СИМВОЛ"
+                            fileContent.AppendLine($"{hexCode}={characterValue}");
+                        }
+
+                        File.WriteAllText(sfd.FileName, fileContent.ToString(), Encoding.UTF8);
+
+                        MessageBox.Show("Character table saved successfully!", "Success", MessageBoxButtons.OK, MessageBoxIcon.Information);
+                    }
+                    catch (Exception ex)
+                    {
+                        MessageBox.Show($"An error occurred while saving the file:\n{ex.Message}", "Error", MessageBoxButtons.OK, MessageBoxIcon.Error);
+                    }
+                }
+            }
+
+        }
+
+        private void aboutToolStripMenuItem_Click(object sender, EventArgs e)
+        {
+            MessageBox.Show($"MesTool GUI by MrIkso. Based on MESTool by gdkchan\nVersion 1.0.0", "About", MessageBoxButtons.OK, MessageBoxIcon.Information);
+        }
+    }
+    public class CharMapEntry
+    {
+        public ushort SortKey { get; set; }
+        public string DecCode { get; set; }
+        public string HexCode { get; set; }
+        public string Character { get; set; }
+    }
+
+}
