@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using System.Globalization;
 using System.IO;
+using System.Linq;
 using System.Text;
 using System.Xml.Serialization;
 
@@ -19,64 +20,88 @@ namespace MESTool
 
         private Platform plat = Platform.PS3;
 
-        const string TimeFormat = @"mm\:ss\.ffff";
-        static string[] Table = new string[0x10000];
-
+        private const string TimeFormat = @"mm\:ss\.ffff";
+        private Dictionary<ushort, string> _charTable = new Dictionary<ushort, string>();
+        private Dictionary<string, ushort> _reverseCharTable = new Dictionary<string, ushort>();
 
         public Platform Plat { get => plat; set => plat = value; }
+
+        public MesToolProcessor()
+        {
+
+        }
 
         public MesToolProcessor(string charTableContent)
         {
             InitializeCharTable(charTableContent);
         }
 
-        private void InitializeCharTable(string charTableContent)
+        public void InitializeCharTable(string charTableContent)
         {
             if (string.IsNullOrEmpty(charTableContent))
             {
-                throw new ArgumentNullException(nameof(charTableContent), "CharTable not might empty!");
+                throw new ArgumentNullException(nameof(charTableContent), "CharTable content cannot be empty.");
             }
 
-            string[] tblEntries = charTableContent.Split(new[] { "\r\n", "\n" }, StringSplitOptions.RemoveEmptyEntries);
-            foreach (string entry in tblEntries)
+            _charTable.Clear();
+            _reverseCharTable.Clear();
+
+            var lines = charTableContent.Split(new[] { "\r\n", "\n" }, StringSplitOptions.RemoveEmptyEntries);
+
+            foreach (var line in lines)
             {
-                string[] parameters = entry.Split(new[] { '=' }, 2);
-                if (parameters.Length != 2)
+                if (string.IsNullOrEmpty(line) || line.StartsWith("#"))
                 {
                     continue;
                 }
-                ushort code = (ushort)int.Parse(parameters[0], NumberStyles.HexNumber);
-                string character = parameters[1].Replace("\\n", "\n");
 
-                Table[code] = character;
+                string[] parts = line.Split(new[] { '=' }, 2);
+                if (parts.Length != 2)
+                {
+                    Console.WriteLine($"Warning: Skipping malformed line in CharTable: '{line}'");
+                    continue;
+                }
 
+                string codeStr = parts[0];
+                string charStr = parts[1];
+
+                if (ushort.TryParse(codeStr, NumberStyles.HexNumber, CultureInfo.InvariantCulture, out ushort code))
+                {
+                    string character = charStr.Replace("\\n", "\n");
+
+                    if (!_charTable.ContainsKey(code))
+                    {
+                        _charTable.Add(code, character);
+                    }
+                    else
+                    {
+                        Console.WriteLine($"Warning: Duplicate code '0x{code:X4}' found in CharTable. Using the last found value.");
+                        _charTable[code] = character;
+                    }
+
+                    if (!_reverseCharTable.ContainsKey(character))
+                    {
+                        _reverseCharTable.Add(character, code);
+                    }
+
+                }
+                else
+                {
+                    Console.WriteLine($"Warning: Could not parse hex code from line: '{line}'");
+                }
             }
         }
 
         public Dictionary<ushort, string> GetCharTableForDisplay()
         {
-            var result = new Dictionary<ushort, string>();
-            for (int i = 0; i < Table.Length; i++)
-            {
-                if (!string.IsNullOrEmpty(Table[i]))
-                {
-                    result.Add((ushort)i, Table[i]);
-                }
-            }
-            return result;
+            return new Dictionary<ushort, string>(_charTable);
         }
 
         public string GetCharacterById(ushort id)
         {
-            if (id < Table.Length)
+            if (_charTable.TryGetValue(id, out string character))
             {
-                string character = Table[id];
-
-                if (character == "\n") return "\\n";
-                if (character == "\r") return "\\r";
-                if (character == "\t") return "\\t";
-
-                return character;
+                return character.Replace("\n", "\\n");
             }
             return null;
         }
@@ -223,19 +248,22 @@ namespace MESTool
 
                 for (int i = 0; i < Entry.Length; i += 2)
                 {
-                    ushort Value = Reader.ReadUInt16();
-                    string Character = Table[Value];
-
-                    if (Character != null)
-                        Texts.Append(Character);
-                    else if (Value == 0x8000)
+                    ushort value = Reader.ReadUInt16();
+                    string character;
+                    if (_charTable.TryGetValue(value, out character))
+                    {
+                        Texts.Append(character);
+                    }
+                    else if (value == 0x8000)
+                    {
                         Texts.Append(Environment.NewLine);
-                    else if (Value == 0x8f00)
+                    }
+                    else if (value == 0x8f00)
                     {
                         Texts.Append("[id=" + Reader.ReadUInt16().ToString() + "]");
                         i += 2;
                     }
-                    else if (Value == 0x8f01)
+                    else if (value == 0x8f01)
                     {
                         float Start = Reader.ReadUInt16() / 64f;
                         float End = Reader.ReadUInt16() / 64f;
@@ -245,7 +273,7 @@ namespace MESTool
                         i += 4;
                     }
                     else
-                        Texts.Append("[0x" + Value.ToString("X4") + "]");
+                        Texts.Append("[0x" + value.ToString("X4") + "]");
 
                     if (i > Entry.Length)
                     {
@@ -536,27 +564,28 @@ namespace MESTool
                 #endregion
 
                 #region Write Texts File
-                uint Index = 0;
-                foreach (string Text in Texts)
+                var sortedMultiCharKeys = _reverseCharTable.Keys.Where(k => k.Length > 1).OrderByDescending(k => k.Length).ToList();
+                uint index = 0;
+                foreach (string text in Texts)
                 {
-                    uint StartPosition = (uint)TextsBlock.Position;
+                    uint startPosition = (uint)TextsBlock.Position;
 
-                    for (int i = 0; i < Text.Length; i++)
+                    for (int i = 0; i < text.Length; i++)
                     {
-                        if (i + 4 <= Text.Length && Text.Substring(i, 4) == "[id=" && Text.Substring(i + 4).IndexOf("]") > -1)
+                        if (i + 4 <= text.Length && text.Substring(i, 4) == "[id=" && text.Substring(i + 4).IndexOf("]") > -1)
                         {
                             int StartPos = i + 4;
-                            int Length = Text.Substring(StartPos).IndexOf("]");
-                            uint Id = uint.Parse(Text.Substring(StartPos, Length));
+                            int Length = text.Substring(StartPos).IndexOf("]");
+                            uint Id = uint.Parse(text.Substring(StartPos, Length));
                             TextsBlockWriter.Write((ushort)0x8f00);
                             TextsBlockWriter.Write((ushort)Id);
                             i += Length + 4;
                         }
-                        else if (i + 6 <= Text.Length && Text.Substring(i, 6) == "[time=" && Text.Substring(i + 6).IndexOf("]") > -1)
+                        else if (i + 6 <= text.Length && text.Substring(i, 6) == "[time=" && text.Substring(i + 6).IndexOf("]") > -1)
                         {
                             int StartPos = i + 6;
-                            int Length = Text.Substring(StartPos).IndexOf("]");
-                            string[] Contents = Text.Substring(StartPos, Length).Split(Convert.ToChar("/"));
+                            int Length = text.Substring(StartPos).IndexOf("]");
+                            string[] Contents = text.Substring(StartPos, Length).Split(Convert.ToChar("/"));
                             TimeSpan StartTime = TimeSpan.ParseExact(Contents[0], TimeFormat, CultureInfo.InvariantCulture);
                             TimeSpan EndTime = TimeSpan.ParseExact(Contents[1], TimeFormat, CultureInfo.InvariantCulture);
                             TextsBlockWriter.Write((ushort)0x8f01);
@@ -564,23 +593,53 @@ namespace MESTool
                             TextsBlockWriter.Write((ushort)(EndTime.TotalSeconds * 64f));
                             i += Length + 6;
                         }
-                        else if (i + 3 <= Text.Length && Text.Substring(i, 3) == "[0x" && Text.Substring(i + 3).IndexOf("]") > -1)
+                        else if (i + 3 <= text.Length && text.Substring(i, 3) == "[0x" && text.Substring(i + 3).IndexOf("]") > -1)
                         {
                             int StartPos = i + 3;
-                            int Length = Text.Substring(StartPos).IndexOf("]");
-                            string Hex = Text.Substring(StartPos, Length);
+                            int Length = text.Substring(StartPos).IndexOf("]");
+                            string Hex = text.Substring(StartPos, Length);
                             TextsBlockWriter.Write(ushort.Parse(Hex, NumberStyles.HexNumber));
                             i += Length + 3;
                         }
-                        else if (i + 2 <= Text.Length && Text.Substring(i, 2) == Environment.NewLine)
+                        else if (i + 2 <= text.Length && text.Substring(i, 2) == Environment.NewLine)
                         {
                             TextsBlockWriter.Write((ushort)0x8000);
                             i++;
                         }
                         else
                         {
+                            bool matchFound = false;
+
+                            // Шукаємо багатосимвольні збіги
+                            foreach (string key in sortedMultiCharKeys)
+                            {
+                                if (text.Substring(i).StartsWith(key))
+                                {
+                                    TextsBlockWriter.Write(_reverseCharTable[key]);
+                                    i += key.Length - 1;
+                                    matchFound = true;
+                                    break;
+                                }
+                            }
+
+                            if (matchFound)
+                            {
+                                continue;
+                            }
+
+                            // Шукаємо односимвольний збіг
+                            string singleChar = text[i].ToString();
+                            if (_reverseCharTable.TryGetValue(singleChar, out ushort value))
+                            {
+                                TextsBlockWriter.Write(value);
+                            }
+                            else
+                            {
+                                Console.WriteLine($"Warning: Character or sequence starting with '{singleChar}' not found in CharTable. Skipping.");
+                            }
+                            /*
                             int Value = -1;
-                            string Character = Text.Substring(i, 1);
+                            string Character = text.Substring(i, 1);
 
                             if (Character == "[")
                             {
@@ -588,10 +647,10 @@ namespace MESTool
                                 for (int TblIndex = 0; TblIndex < Table.Length; TblIndex++)
                                 {
                                     string TblValue = Table[TblIndex];
-                                    if (TblValue == null || TblValue == "[" || i + TblValue.Length > Text.Length)
+                                    if (TblValue == null || TblValue == "[" || i + TblValue.Length > text.Length)
                                         continue;
 
-                                    if (Text.Substring(i, TblValue.Length) == TblValue)
+                                    if (text.Substring(i, TblValue.Length) == TblValue)
                                     {
                                         Value = TblIndex;
                                         i += TblValue.Length - 1;
@@ -608,12 +667,13 @@ namespace MESTool
                             {
                                 TextsBlockWriter.Write((ushort)Value);
                             }
+                            */
                         }
                     }
 
-                    Writer.Write(Index++);
-                    Writer.Write((uint)((StartPosition + 0xc + Texts.Length * 0xc) - 4));
-                    Writer.Write((uint)(TextsBlock.Position - StartPosition));
+                    Writer.Write(index++);
+                    Writer.Write((uint)((startPosition + 0xc + Texts.Length * 0xc) - 4));
+                    Writer.Write((uint)(TextsBlock.Position - startPosition));
                 }
 
                 Writer.Write(TextsBlock.ToArray());
