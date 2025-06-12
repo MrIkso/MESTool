@@ -63,9 +63,8 @@ namespace MESTool
             }
         }
 
-        private static byte[] ExtractDdsFromWtb(byte[] wtbData)
+        public static byte[] ExtractDdsFromWtb(byte[] wtbData)
         {
-
             const uint ddsSignature = 0x20534444; // "DDS " в little-endian   
             for (int i = 0; i <= wtbData.Length - 4; i++)
             {
@@ -124,7 +123,7 @@ namespace MESTool
             var encoder = new BcEncoder();
 
             encoder.OutputOptions.FileFormat = OutputFileFormat.Dds;
-           
+
             encoder.OutputOptions.Format = CompressionFormat.Rgba;
             encoder.OutputOptions.GenerateMipMaps = false;
             DdsFile ddsFile = encoder.EncodeToDds(memory2D);

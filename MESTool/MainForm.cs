@@ -493,6 +493,38 @@ namespace MESTool
                 }
             }
         }
+
+        private void SaveTextureFromWtb()
+        {
+            string extension = Path.GetExtension(_currentlySelectedFilePath).ToLower();
+            if (extension != ".wtb")
+            {
+                MessageBox.Show("Please select a valid WTB file to save the texture.", "Invalid File", MessageBoxButtons.OK, MessageBoxIcon.Warning);
+                return;
+            }
+            byte[] ddsData = DDSUtil.ExtractDdsFromWtb(File.ReadAllBytes(_currentlySelectedFilePath));
+
+            using (SaveFileDialog sfd = new SaveFileDialog())
+            {
+                sfd.Filter = "DirectDraw Surface (*.dds)|*.dds";
+                sfd.Title = "Save Texture";
+                sfd.FileName = "Texture.dds";
+
+                if (sfd.ShowDialog() == DialogResult.OK)
+                {
+                    try
+                    {
+                       File.WriteAllBytes(sfd.FileName, ddsData);
+                       MessageBox.Show("Texture saved successfully!", "Success", MessageBoxButtons.OK, MessageBoxIcon.Information);
+                    }
+                    catch (Exception ex)
+                    {
+                        MessageBox.Show($"Failed to save texture: {ex.Message}", "Error", MessageBoxButtons.OK, MessageBoxIcon.Error);
+                    }
+                }
+            }
+        }
+
         private void saveCharsetDataBtn_Click(object sender, EventArgs e)
         {
 
@@ -598,7 +630,7 @@ namespace MESTool
 
         private void saveTextureAsDDSToolStripMenuItem_Click(object sender, EventArgs e)
         {
-            SaveTexture();
+            SaveTextureFromWtb();
         }
 
         private void exportModifiedTextureAndCharTableToolStripMenuItem_Click(object sender, EventArgs e)
